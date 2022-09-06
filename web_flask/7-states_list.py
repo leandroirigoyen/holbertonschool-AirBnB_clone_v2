@@ -1,29 +1,34 @@
+
 #!/usr/bin/python3
 """
-Server routes
+Script that starts a Flask web application
 """
+
 from flask import Flask, render_template
-from models import *
 from models import storage
+from models.state import State
+
+
 app = Flask(__name__)
-
-
-@app.route('/states_list', strict_slashes=False)
-def stateslist():
-    """
-    HTML
-    """
-    states = sorted(list(storage.all("State").values()), key=lambda x: x.name)
-    return render_template('7-states_list.html', states=states)
+app.strict_slashes = False
 
 
 @app.teardown_appcontext
-def teardowndb(exception):
+def close_db(self):
     """
-    Close storage
+    Remove current SQLAlchemy Session
     """
     storage.close()
 
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port='5000')
+@app.route('/states_list')
+def list_of_states():
+    """
+    Displays all states present in DBStorage
+    """
+    return render_template('7-states_list.html',
+                           state=storage.all(State).values())
+
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port="5000")
